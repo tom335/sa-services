@@ -1,0 +1,12 @@
+bin/*
+include/*
+lib/*
+lib64
+logs/*
+data/*.db
+app/static/uploads/*
+pip-self*
+__pycache__
+pyvenv.cfg
+.google*
+nohup*
