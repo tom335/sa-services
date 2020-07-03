@@ -1,5 +1,5 @@
-from sqlalchemy import select
-from sqlalchemy.sql import func
+from sqlalchemy import select, union
+from sqlalchemy.sql import func, text
 
 
 class SqlAlchemyService:
@@ -69,30 +69,26 @@ class SqlAlchemyService:
 
 
     def paginate(self, sel=None, page=1, page_size=5):
+        table     = self.table()
         total_lb  = 'total'
-        count_sel = select([func.count(self.table().c.id).label(total_lb)])
-        items_sel = select([self.table()])
+
+        total_sel = select([func.count(table.c.id).label(total_lb)])
+        items_sel = select([table]) if sel == None else sel
 
         offset = ((page-1) * page_size) if page > 1 else 0
 
-        sel_ = select([count_sel.label(total_lb), items_sel])\
-                    .limit(page_size).offset(offset) if sel == None else sel
+        limit_sel = items_sel\
+                        .limit(page_size).offset(offset)\
+                        .order_by(table.c.id)
 
-        r = self.exec(sel_)
+        total_res = self.exec(total_sel)
+        items_res = self.exec(limit_sel)
 
-        def map_fn(el):
-            el.pop(total_lb)
-            return el
-
-        res_list = [dict(i) for i in r.fetchall()] if r else []
-
-        # total number of items
-        total = res_list[0][total_lb]
-
-        query_res = list(map(map_fn, res_list))
-
+        total = total_res.fetchone()[total_lb] if total_res else 0
+        items = [i for i in items_res.fetchall()] if items_res else []
+     
         return {
-            'items': query_res,
+            'items': items,
             'total': total,
             'pages': self._calc_total_pages(total, page_size),
             'page':  page

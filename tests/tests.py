@@ -167,7 +167,11 @@ if __name__ == '__main__':
     print (post_service.all_with_categories())
 
 
-    print ('Pagination tests')
-    print (post_service.paginate(page=2, page_size=3))
+    print ('\n-- Pagination tests \n')
+    pag_items = post_service.paginate(page=2, page_size=3)
+
+    for i in pag_items.get('items'):
+        print (type(i))
+        print (dict(i))
 
 
