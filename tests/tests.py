@@ -1,5 +1,11 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 from sqlalchemy.sql import select, and_
-from services import SqlAlchemyConnector, SqlAlchemyService
+from services.saservice import SqlAlchemyService
+from services.connector import SqlAlchemyConnector
 from schema import create_tables
 
 

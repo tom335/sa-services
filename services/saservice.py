@@ -1,55 +1,15 @@
-
-from sqlalchemy import table, column, select, create_engine, MetaData
+from sqlalchemy import select
 from sqlalchemy.sql import func
-
-
-def init_services(services_map, connector):
-    for s_key, s_class in services_map.items():
-        s_name = s_key + '_service'
-        ServiceFactory.create_service(s_name, s_class, connector)
-
-
-class Services:
-    def __init__(self):
-        self.services = {}
-
-    def add(self, service_name, service_instance):
-        self.services[service_name] = service_instance
-
-    def get(self, service_name):
-        return self.services[service_name]
-
-
-class ServiceFactory:
-
-    @staticmethod
-    def create_service(service_name, service_class, connector):
-        global services
-        services.add(service_name, service_class(connector))
-
-
-
-class SqlAlchemyConnector():
-
-    def __init__(self, db_path, echo=True):
-        self.engine = create_engine(db_path, echo=echo)
-        self.conn = self.engine.connect()
-        self.metadata = MetaData(bind=self.engine)
-
-        self.metadata.reflect(self.engine)
-
 
 
 class SqlAlchemyService:
 
-
     table_name = None
-
 
     def __init__(self, connector):
         self.connector = connector
-        self.conn = connector.conn
-        self.metadata = connector.metadata
+        self.metadata  = connector.metadata
+        self.conn      = connector.conn
 
 
     def table(self, table_name=None):
