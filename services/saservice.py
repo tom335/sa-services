@@ -9,7 +9,10 @@ class SqlAlchemyService:
     def __init__(self, connector):
         self.connector = connector
         self.metadata  = connector.metadata
-        self.conn      = connector.conn
+
+
+    def conn(self):
+        return self.connector.get_connection()
 
 
     def table(self, table_name=None):
@@ -18,7 +21,7 @@ class SqlAlchemyService:
 
 
     def exec(self, stmt, *args):
-        res = self.conn.execute(stmt, *args)
+        res = self.conn().execute(stmt, *args)
         return res
 
 
@@ -58,9 +61,9 @@ class SqlAlchemyService:
     def find_by(self, col, val):
         t = self.table()
         s = t.select(t.c[col] == val)
-        r = self.exec(s)
+        r = self.exec(s).fetchone()
 
-        return r.fetchall()
+        return dict(r) if r else None
 
 
     def find_all(self):
