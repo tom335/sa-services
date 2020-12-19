@@ -73,29 +73,38 @@ class SqlAlchemyService:
 
     def paginate(self, sel=None, page=1, page_size=5):
         table     = self.table()
-        total_lb  = 'total'
-
-        total_sel = select([func.count(table.c.id).label(total_lb)])
         items_sel = select([table]) if sel == None else sel
-
-        offset = ((page-1) * page_size) if page > 1 else 0
+        offset    = ((page-1) * page_size) if page > 1 else 0
 
         limit_sel = items_sel\
                         .limit(page_size).offset(offset)\
                         .order_by(table.c.id)
 
-        total_res = self.exec(total_sel)
         items_res = self.exec(limit_sel)
-
-        total = total_res.fetchone()[total_lb] if total_res else 0
         items = [i for i in items_res.fetchall()] if items_res else []
-     
+
+        total = self._count_total_items(table, items_sel)
+
         return {
             'items': items,
             'total': total,
             'pages': self._calc_total_pages(total, page_size),
             'page':  page
         }
+
+
+    def _count_total_items(self, table, items_sel):
+        total_lb = 'total'
+
+        # WARNING
+        # _whereclause is a private property, that'll be added
+        # in the 1.4 version of SqlAlchemy; it's used here to limit
+        # the number of total results of a select query
+        sel = select([func.count(table.c.id).label(total_lb)])\
+                .where(items_sel._whereclause)
+
+        res = self.exec(sel)
+        return res.fetchone()[total_lb] if res else 0
 
 
     def _calc_total_pages(self, total, page_size):
